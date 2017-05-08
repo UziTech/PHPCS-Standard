@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<ruleset name="UziTech">
+	<description>UziTech coding standard.</description>
+
+	<arg name="tab-width" value="2"/>
+	<arg name="report" value="summary"/>
+	<arg value="s" />
+
+	<rule ref="PSR2">
+		<exclude name="Generic.Files.LineLength.TooLong" />
+		<exclude name="Generic.WhiteSpace.DisallowTabIndent" />
+		<exclude name="Generic.WhiteSpace.ScopeIndent" />
+		<exclude name="Squiz.Functions.MultiLineFunctionDeclaration.BraceOnSameLine" />
+		<exclude name="PSR2.Classes.ClassDeclaration" />
+		<exclude name="PSR2.ControlStructures.ElseIfDeclaration.NotAllowed" />
+		<exclude name="PSR2.ControlStructures.SwitchDeclaration" />
+	</rule>
+
+	<rule ref="Generic.WhiteSpace.DisallowSpaceIndent"/>
+	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+	<rule ref="UziTech.WhiteSpace.ScopeIndent">
+		<properties>
+			<property name="tabIndent" value="true"/>
+			<property name="ignoreIndentationTokens" type="array" value="T_OBJECT_OPERATOR,T_COMMENT,T_DOC_COMMENT_OPEN_TAG" />
+			<property name="exact" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="UziTech.Arrays.ArrayDeclaration">
+		<properties>
+			<property name="tabIndent" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="UziTech.ControlStructures.SwitchDeclaration">
+		<properties>
+			<property name="tabIndent" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="UziTech.WhiteSpace.ObjectOperatorIndent">
+		<properties>
+			<property name="tabIndent" value="true"/>
+		</properties>
+	</rule>
+
+	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie" />
+	<rule ref="Generic.PHP.NoSilencedErrors"/>
+	<rule ref="Squiz.ControlStructures.ElseIfDeclaration" />
+	
+	<rule ref="UziTech.Debug.LogTokens">
+		<properties>
+			<property name="debug" value="false"/>
+		</properties>
+	</rule>
+ </ruleset>
