@@ -1,18 +1,34 @@
 <?php
-/*
- * Log all tokens to error_log
+/**
+ * A test to ensure that arrays conform to the array coding standard.
+ *
+ * PHP version 5
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
+ * @author    Greg Sherwood <gsherwood@squiz.net>
+ * @author    Marc McIntyre <mmcintyre@squiz.net>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
 
-
-namespace UziTech\Sniffs\Debug;
-
-use PHP_CodeSniffer\Sniffs\Sniff;
-use PHP_CodeSniffer\Files\File;
-
-class LogTokensSniff implements Sniff
+/**
+ * A test to ensure that arrays conform to the array coding standard.
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
+ * @author    Greg Sherwood <gsherwood@squiz.net>
+ * @author    Marc McIntyre <mmcintyre@squiz.net>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @version   Release: 2.6.0
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
+ */
+class UziTech_Sniffs_Debug_LogTokensSniff implements PHP_CodeSniffer_Sniff
 {
-
-        public $debug = false;
+	
+		public $debug = false;
 
 
     /**
@@ -32,21 +48,18 @@ class LogTokensSniff implements Sniff
     /**
      * Processes this sniff, when one of its tokens is encountered.
      *
-     * @param File $phpcsFile The current file being checked.
+     * @param PHP_CodeSniffer_File $phpcsFile The current file being checked.
      * @param int                  $stackPtr  The position of the current token in
      *                                        the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(File $phpcsFile, $stackPtr)
+    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
     {
-        if($this->debug){
-            $tokens = $phpcsFile->getTokens();
-            ob_start();
-            var_dump($tokens);
-            $varDump = ob_get_clean();
-            error_log($varDump);
-        }
+        $tokens = $phpcsFile->getTokens();
+				if($this->debug){
+					error_log(var_dump_r($tokens));
+				}
 
     }//end process()
 

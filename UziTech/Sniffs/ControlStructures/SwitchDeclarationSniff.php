@@ -1,30 +1,40 @@
 <?php
 /**
- * Ensures all switch statements are defined correctly.
- * Modified from PSR2\Sniffs\ControlStructures\SwitchDeclarationSniff to allow tabs
+ * PSR2_Sniffs_ControlStructures_SwitchDeclarationSniff.
  *
+ * PHP version 5
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2015 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
 
-namespace UziTech\Sniffs\ControlStructures;
-
-use PHP_CodeSniffer\Sniffs\Sniff;
-use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Util\Tokens;
-
-class SwitchDeclarationSniff implements Sniff
+/**
+ * PSR2_Sniffs_ControlStructures_SwitchDeclarationSniff.
+ *
+ * Ensures all switch statements are defined correctly.
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
+ * @author    Greg Sherwood <gsherwood@squiz.net>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @version   Release: 2.6.0
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
+ */
+class UziTech_Sniffs_ControlStructures_SwitchDeclarationSniff implements PHP_CodeSniffer_Sniff
 {
 
     /**
      * The number of spaces code should be indented.
      *
-     * @var integer
+     * @var int
      */
-    public $indent = 4;
-
-    // XXX: added by Tony
+    public $indent = null;
+		
     /**
      * Should tabs be used for indenting?
      *
@@ -32,10 +42,9 @@ class SwitchDeclarationSniff implements Sniff
      * The size of each tab is important, so it should be specified
      * using the --tab-width CLI argument.
      *
-     * @var boolean
+     * @var bool
      */
     public $tabIndent = false;
-    // XXX: added by Tony
 
     /**
      * Returns an array of tokens this test wants to listen for.
@@ -52,27 +61,26 @@ class SwitchDeclarationSniff implements Sniff
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
-     * @param int                         $stackPtr  The position of the current token in the
-     *                                               stack passed in $tokens.
+     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
+     * @param int                  $stackPtr  The position of the current token in the
+     *                                        stack passed in $tokens.
      *
      * @return void
      */
-    public function process(File $phpcsFile, $stackPtr)
+    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
     {
-
-        // XXX: added by Tony
-        $this->tabIndent = (bool) $this->tabIndent;
-        if (isset($phpcsFile->config->tabWidth) === false || $phpcsFile->config->tabWidth === 0) {
-            // We have no idea how wide tabs are, so assume 4 spaces for fixing.
-            // It shouldn't really matter because indent checks elsewhere in the
-            // standard should fix things up.
-            $this->indent = 4;
-        } else {
-            $this->indent = $phpcsFile->config->tabWidth;
+				$this->tabIndent = (bool) $this->tabIndent;
+				if ($this->indent === null) {
+            $cliValues = $phpcsFile->phpcs->cli->getCommandLineValues();
+            if (isset($cliValues['tabWidth']) === false || $cliValues['tabWidth'] === 0) {
+                // We have no idea how wide tabs are, so assume 4 spaces for fixing.
+                // It shouldn't really matter because indent checks elsewhere in the
+                // standard should fix things up.
+                $this->indent = 4;
+            } else {
+                $this->indent = $cliValues['tabWidth'];
+            }
         }
-        // XXX: added by Tony
-
         $tokens = $phpcsFile->getTokens();
 
         // We can't process SWITCH statements unless we know where they start and end.
@@ -88,7 +96,7 @@ class SwitchDeclarationSniff implements Sniff
         $caseCount     = 0;
         $foundDefault  = false;
 
-        while (($nextCase = $this->findNextCase($phpcsFile, ($nextCase + 1), $switch['scope_closer'])) !== false) {
+        while (($nextCase = $this->_findNextCase($phpcsFile, ($nextCase + 1), $switch['scope_closer'])) !== false) {
             if ($tokens[$nextCase]['code'] === T_DEFAULT) {
                 $type         = 'default';
                 $foundDefault = true;
@@ -125,10 +133,10 @@ class SwitchDeclarationSniff implements Sniff
                     }
                 }
             }
-            if(isset($tokens[$nextCase]['scope_opener']) === false){
-              // usually means parse error;
-              return;
-            }
+						if(isset($tokens[$nextCase]['scope_opener']) === false){
+							// usually means parse error;
+							return;
+						}
             $opener     = $tokens[$nextCase]['scope_opener'];
             $nextCloser = $tokens[$nextCase]['scope_closer'];
             if ($tokens[$opener]['code'] === T_COLON) {
@@ -184,33 +192,26 @@ class SwitchDeclarationSniff implements Sniff
                             $phpcsFile->fixer->replaceToken($nextCloser, trim($tokens[$nextCloser]['content']));
                         }
                     } else {
-                        $diff = ($caseAlignment + $this->indent - $tokens[$nextCloser]['column']);
+												$expected = $caseAlignment + $this->indent;
+                        $diff = ($expected - $tokens[$nextCloser]['column']);
                         if ($diff !== 0) {
                             $error = 'Terminating statement must be indented to the same level as the CASE body';
                             $fix   = $phpcsFile->addFixableError($error, $nextCloser, 'BreakIndent');
                             if ($fix === true) {
-
-                                // XXX: added by Tony
-                                if($this->tabIndent){
-                                    $level = (int)floor($expected / $this->indent);
-                                    if ($tokens[$nextCloser]['column'] > 0) {
-                                        $phpcsFile->fixer->replaceToken($nextCloser - 1, str_repeat("\t", $level));
-                                    } else {
-                                        $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat("\t", $level));
-                                    }
+															if($this->tabIndent){
+																$level = (int)floor($expected / $this->indent);
+                                if ($tokens[$nextCloser]['column'] > 0) {
+                                    $phpcsFile->fixer->replaceToken($nextCloser - 1, str_repeat("\t", $level));
                                 } else {
-                                // XXX: added by Tony
-
-                                    if ($diff > 0) {
-                                        $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat(' ', $diff));
-                                    } else {
-                                        $phpcsFile->fixer->substrToken(($nextCloser - 1), 0, $diff);
-                                    }
-
-                                // XXX: added by Tony
+                                    $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat("\t", $level));
                                 }
-                                // XXX: added by Tony
-
+															} else {
+                                if ($diff > 0) {
+                                    $phpcsFile->fixer->addContentBefore($nextCloser, str_repeat(' ', $diff));
+                                } else {
+                                    $phpcsFile->fixer->substrToken(($nextCloser - 1), 0, $diff);
+                                }
+															}
                             }
                         }
                     }//end if
@@ -225,19 +226,21 @@ class SwitchDeclarationSniff implements Sniff
                 continue;
             }
 
-            $nextCode = $phpcsFile->findNext(T_WHITESPACE, ($opener + 1), $nextCloser, true);
+            $nextCode = $phpcsFile->findNext(
+                T_WHITESPACE,
+                ($tokens[$nextCase]['scope_opener'] + 1),
+                $nextCloser,
+                true
+            );
 
             if ($tokens[$nextCode]['code'] !== T_CASE && $tokens[$nextCode]['code'] !== T_DEFAULT) {
                 // This case statement has content. If the next case or default comes
-                // before the closer, it means we don't have an obvious terminating
-                // statement and need to make some more effort to find one. If we
-                // don't, we do need a comment.
-                $nextCode = $this->findNextCase($phpcsFile, ($opener + 1), $nextCloser);
+                // before the closer, it means we dont have a terminating statement
+                // and instead need a comment.
+                $nextCode = $this->_findNextCase($phpcsFile, ($tokens[$nextCase]['scope_opener'] + 1), $nextCloser);
                 if ($nextCode !== false) {
                     $prevCode = $phpcsFile->findPrevious(T_WHITESPACE, ($nextCode - 1), $nextCase, true);
-                    if ($tokens[$prevCode]['code'] !== T_COMMENT
-                        && $this->findNestedTerminator($phpcsFile, ($opener + 1), $nextCode) === false
-                    ) {
+                    if ($tokens[$prevCode]['code'] !== T_COMMENT) {
                         $error = 'There must be a comment when fall-through is intentional in a non-empty case body';
                         $phpcsFile->addError($error, $nextCase, 'TerminatingComment');
                     }
@@ -253,13 +256,13 @@ class SwitchDeclarationSniff implements Sniff
      *
      * Note that nested switches are ignored.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
-     * @param int                         $stackPtr  The position to start looking at.
-     * @param int                         $end       The position to stop looking at.
+     * @param PHP_CodeSniffer_File $phpcsFile The file being scanned.
+     * @param int                  $stackPtr  The position to start looking at.
+     * @param int                  $end       The position to stop looking at.
      *
      * @return int | bool
      */
-    private function findNextCase($phpcsFile, $stackPtr, $end)
+    private function _findNextCase(PHP_CodeSniffer_File $phpcsFile, $stackPtr, $end)
     {
         $tokens = $phpcsFile->getTokens();
         while (($stackPtr = $phpcsFile->findNext(array(T_CASE, T_DEFAULT, T_SWITCH), $stackPtr, $end)) !== false) {
@@ -274,94 +277,7 @@ class SwitchDeclarationSniff implements Sniff
 
         return $stackPtr;
 
-    }//end findNextCase()
-
-
-    /**
-     * Returns true if a nested terminating statement is found.
-     *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile The file being scanned.
-     * @param int                         $stackPtr  The position to start looking at.
-     * @param int                         $end       The position to stop looking at.
-     *
-     * @return bool
-     */
-    private function findNestedTerminator($phpcsFile, $stackPtr, $end)
-    {
-        $tokens      = $phpcsFile->getTokens();
-        $terminators = array(
-                        T_RETURN,
-                        T_BREAK,
-                        T_CONTINUE,
-                        T_THROW,
-                        T_EXIT,
-                       );
-
-        $lastToken = $phpcsFile->findPrevious(T_WHITESPACE, ($end - 1), $stackPtr, true);
-        if ($lastToken !== false) {
-            if ($tokens[$lastToken]['code'] === T_CLOSE_CURLY_BRACKET) {
-                // We found a closing curly bracket and want to check if its
-                // block belongs to an IF, ELSEIF or ELSE clause. If yes, we
-                // continue searching for a terminating statement within that
-                // block. Note that we have to make sure that every block of
-                // the entire if/else statement has a terminating statement.
-                $currentCloser = $lastToken;
-                $hasElseBlock  = false;
-                do {
-                    $scopeOpener = $tokens[$currentCloser]['scope_opener'];
-                    $scopeCloser = $tokens[$currentCloser]['scope_closer'];
-
-                    $prevToken = $phpcsFile->findPrevious(T_WHITESPACE, ($scopeOpener - 1), $stackPtr, true);
-                    if ($prevToken === false) {
-                        return false;
-                    }
-
-                    // IF and ELSEIF clauses possess a condition we have to account for.
-                    if ($tokens[$prevToken]['code'] === T_CLOSE_PARENTHESIS) {
-                        $prevToken = $tokens[$prevToken]['parenthesis_owner'];
-                    }
-
-                    if ($tokens[$prevToken]['code'] === T_IF) {
-                        // If we have not encountered an ELSE clause by now, we cannot
-                        // be sure that the whole statement terminates in every case.
-                        if ($hasElseBlock === false) {
-                            return false;
-                        }
-
-                        return $this->findNestedTerminator($phpcsFile, ($scopeOpener + 1), $scopeCloser);
-                    } else if ($tokens[$prevToken]['code'] === T_ELSEIF
-                        || $tokens[$prevToken]['code'] === T_ELSE
-                    ) {
-                        // If we find a terminating statement within this block,
-                        // we continue with the previous ELSEIF or IF clause.
-                        $hasTerminator = $this->findNestedTerminator($phpcsFile, ($scopeOpener + 1), $scopeCloser);
-                        if ($hasTerminator === false) {
-                            return false;
-                        }
-
-                        $currentCloser = $phpcsFile->findPrevious(T_WHITESPACE, ($prevToken - 1), $stackPtr, true);
-                        if ($tokens[$prevToken]['code'] === T_ELSE) {
-                            $hasElseBlock = true;
-                        }
-                    } else {
-                        return false;
-                    }//end if
-                } while ($currentCloser !== false && $tokens[$currentCloser]['code'] === T_CLOSE_CURLY_BRACKET);
-
-                return true;
-            } else if ($tokens[$lastToken]['code'] === T_SEMICOLON) {
-                // We found the last statement of the CASE. Now we want to
-                // check whether it is a terminating one.
-                $terminator = $phpcsFile->findStartOfStatement(($lastToken - 1));
-                if (in_array($tokens[$terminator]['code'], $terminators, true) === true) {
-                    return $terminator;
-                }
-            }//end if
-        }//end if
-
-        return false;
-
-    }//end findNestedTerminator()
+    }//end _findNextCase()
 
 
 }//end class

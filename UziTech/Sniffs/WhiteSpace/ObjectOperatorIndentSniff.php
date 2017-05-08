@@ -1,30 +1,41 @@
 <?php
 /**
- * Checks that object operators are indented correctly.
- * Modified from PEAR\Sniffs\WhiteSpace\ObjectOperatorIndentSniff to add tab support
+ * PEAR_Sniffs_WhiteSpace_ObjectOperatorIndentSniff.
  *
+ * PHP version 5
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
  * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2015 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
  */
 
-namespace UziTech\Sniffs\WhiteSpace;
-
-use PHP_CodeSniffer\Sniffs\Sniff;
-use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Config;
-
-class ObjectOperatorIndentSniff implements Sniff
+/**
+ * PEAR_Sniffs_WhiteSpace_ObjectOperatorIndentSniff.
+ *
+ * Checks that object operators are indented 4 spaces if they are the first
+ * thing on a line.
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
+ * @author    Greg Sherwood <gsherwood@squiz.net>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @version   Release: @package_version@
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
+ */
+class UziTech_Sniffs_WhiteSpace_ObjectOperatorIndentSniff implements PHP_CodeSniffer_Sniff
 {
 
     /**
      * The number of spaces code should be indented.
      *
-     * @var integer
+     * @var int
      */
-    public $indent = 4;
+    public $indent = null;
 
-    // XXX: added by Tony
     /**
      * Should tabs be used for indenting?
      *
@@ -32,15 +43,15 @@ class ObjectOperatorIndentSniff implements Sniff
      * The size of each tab is important, so it should be specified
      * using the --tab-width CLI argument.
      *
-     * @var boolean
+     * @var bool
      */
     public $tabIndent = false;
-    // XXX: added by Tony
+
 
     /**
      * Returns an array of tokens this test wants to listen for.
      *
-     * @return int[]
+     * @return array
      */
     public function register()
     {
@@ -52,28 +63,29 @@ class ObjectOperatorIndentSniff implements Sniff
     /**
      * Processes this test, when one of its tokens is encountered.
      *
-     * @param \PHP_CodeSniffer\Files\File $phpcsFile All the tokens found in the document.
-     * @param int                         $stackPtr  The position of the current token
-     *                                               in the stack passed in $tokens.
+     * @param PHP_CodeSniffer_File $phpcsFile All the tokens found in the document.
+     * @param int                  $stackPtr  The position of the current token
+     *                                        in the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(File $phpcsFile, $stackPtr)
+    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
     {
-
-        // XXX: added by Tony
-        $this->tabIndent = (bool) $this->tabIndent;
-        if (isset($phpcsFile->config->tabWidth) === false || $phpcsFile->config->tabWidth === 0) {
-            // We have no idea how wide tabs are, so assume 4 spaces for fixing.
-            // It shouldn't really matter because indent checks elsewhere in the
-            // standard should fix things up.
-            $this->indent = 4;
-        } else {
-            $this->indent = $phpcsFile->config->tabWidth;
+				$this->tabIndent = (bool) $this->tabIndent;
+				if ($this->indent === null) {
+            $cliValues = $phpcsFile->phpcs->cli->getCommandLineValues();
+            if (isset($cliValues['tabWidth']) === false || $cliValues['tabWidth'] === 0) {
+                // We have no idea how wide tabs are, so assume 4 spaces for fixing.
+                // It shouldn't really matter because indent checks elsewhere in the
+                // standard should fix things up.
+                $this->indent = 4;
+            } else {
+                $this->indent = $cliValues['tabWidth'];
+            }
         }
-        // XXX: added by Tony
-
+				
         $tokens = $phpcsFile->getTokens();
+				
 
         // Make sure this is the first object operator in a chain of them.
         $varToken = $phpcsFile->findPrevious(T_WHITESPACE, ($stackPtr - 1), null, true);
@@ -155,26 +167,25 @@ class ObjectOperatorIndentSniff implements Sniff
                     }
 
                     if ($foundIndent !== $requiredIndent) {
+												
+												
+											if($this->tabIndent){
+													$error = 'Object operator not indented correctly; expected %s tabs but found %s';
+													$data  = array(
+																		$requiredIndent / $this->indent,
+																		$foundIndent / $this->indent,
+																	 );
 
-                        // XXX: added by Tony
-                        if($this->tabIndent){
-                            $error = 'Object operator not indented correctly; expected %s tabs but found %s';
-                            $data  = array(
-                                       $requiredIndent / $this->indent,
-                                       $foundIndent / $this->indent,
-                                     );
-
-                            $fix = $phpcsFile->addFixableError($error, $next, 'IncorrectIndent', $data);
-                            if ($fix === true) {
-                                $tabs = str_repeat("\t", $requiredIndent / $this->indent);
-                                if ($foundIndent === 0) {
-                                    $phpcsFile->fixer->addContentBefore($next, $tabs);
-                                } else {
-                                    $phpcsFile->fixer->replaceToken(($next - 1), $tabs);
-                                }
-                            }
-                        } else {
-                        // XXX: added by Tony
+													$fix = $phpcsFile->addFixableError($error, $next, 'IncorrectIndent', $data);
+													if ($fix === true) {
+															$tabs = str_repeat("\t", $requiredIndent / $this->indent);
+															if ($foundIndent === 0) {
+																	$phpcsFile->fixer->addContentBefore($next, $tabs);
+															} else {
+																	$phpcsFile->fixer->replaceToken(($next - 1), $tabs);
+															}
+													}
+											} else {
                         $error = 'Object operator not indented correctly; expected %s spaces but found %s';
                         $data  = array(
                                   $requiredIndent,
@@ -183,17 +194,15 @@ class ObjectOperatorIndentSniff implements Sniff
 
                         $fix = $phpcsFile->addFixableError($error, $next, 'IncorrectIndent', $data);
                         if ($fix === true) {
-                                                        $spaces = str_repeat(' ', $requiredIndent);
-                                                        if ($foundIndent === 0) {
-                                                                $phpcsFile->fixer->addContentBefore($next, $spaces);
-                                                        } else {
-                                                                $phpcsFile->fixer->replaceToken(($next - 1), $spaces);
-                                                        }
+														$spaces = str_repeat(' ', $requiredIndent);
+														if ($foundIndent === 0) {
+																$phpcsFile->fixer->addContentBefore($next, $spaces);
+														} else {
+																$phpcsFile->fixer->replaceToken(($next - 1), $spaces);
+														}
                         }
-                                            }
-                    // XXX: added by Tony
+											}
                     }
-                    // XXX: added by Tony
                 }//end if
 
                 // It cant be the last thing on the line either.

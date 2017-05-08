@@ -1,14 +1,50 @@
 <?php
+/**
+ * A test to ensure that arrays conform to the array coding standard.
+ *
+ * PHP version 5
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
+ * @author    Greg Sherwood <gsherwood@squiz.net>
+ * @author    Marc McIntyre <mmcintyre@squiz.net>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
+ */
 
-namespace UziTech\Sniffs\Arrays;
-
-use PHP_CodeSniffer\Sniffs\Sniff;
-use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Util\Tokens;
-use PHP_CodeSniffer\Config;
-
-class ArrayDeclarationSniff implements Sniff
+/**
+ * A test to ensure that arrays conform to the array coding standard.
+ *
+ * @category  PHP
+ * @package   PHP_CodeSniffer
+ * @author    Greg Sherwood <gsherwood@squiz.net>
+ * @author    Marc McIntyre <mmcintyre@squiz.net>
+ * @copyright 2006-2014 Squiz Pty Ltd (ABN 77 084 670 600)
+ * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
+ * @version   Release: 2.6.0
+ * @link      http://pear.php.net/package/PHP_CodeSniffer
+ */
+class UziTech_Sniffs_Arrays_ArrayDeclarationSniff implements PHP_CodeSniffer_Sniff
 {
+
+    /**
+     * The number of spaces code should be indented.
+     *
+     * @var int
+     */
+    public $indent = null;
+		
+    /**
+     * Should tabs be used for indenting?
+     *
+     * If TRUE, fixes will be made using tabs instead of spaces.
+     * The size of each tab is important, so it should be specified
+     * using the --tab-width CLI argument.
+     *
+     * @var bool
+     */
+    public $tabIndent = false;
 
     /**
      * Returns an array of tokens this test wants to listen for.
@@ -28,17 +64,18 @@ class ArrayDeclarationSniff implements Sniff
     /**
      * Processes this sniff, when one of its tokens is encountered.
      *
-     * @param File $phpcsFile The current file being checked.
+     * @param PHP_CodeSniffer_File $phpcsFile The current file being checked.
      * @param int                  $stackPtr  The position of the current token in
      *                                        the stack passed in $tokens.
      *
      * @return void
      */
-    public function process(File $phpcsFile, $stackPtr)
+    public function process(PHP_CodeSniffer_File $phpcsFile, $stackPtr)
     {
-        $this->tabIndent = (bool) $this->tabIndent;
+				$this->tabIndent = (bool) $this->tabIndent;
         $tokens = $phpcsFile->getTokens();
-
+				//error_log(var_dump_r($tokens));
+				
         if ($tokens[$stackPtr]['code'] === T_ARRAY) {
             $phpcsFile->recordMetric($stackPtr, 'Short array syntax used', 'no');
 
@@ -121,7 +158,7 @@ class ArrayDeclarationSniff implements Sniff
     /**
      * Processes a single-line array definition.
      *
-     * @param File $phpcsFile  The current file being checked.
+     * @param PHP_CodeSniffer_File $phpcsFile  The current file being checked.
      * @param int                  $stackPtr   The position of the current token
      *                                         in the stack passed in $tokens.
      * @param int                  $arrayStart The token that starts the array definition.
@@ -129,7 +166,7 @@ class ArrayDeclarationSniff implements Sniff
      *
      * @return void
      */
-    public function processSingleLineArray(File $phpcsFile, $stackPtr, $arrayStart, $arrayEnd)
+    public function processSingleLineArray(PHP_CodeSniffer_File $phpcsFile, $stackPtr, $arrayStart, $arrayEnd)
     {
         $tokens = $phpcsFile->getTokens();
 
@@ -162,11 +199,11 @@ class ArrayDeclarationSniff implements Sniff
             }
         }//end for
 
-                $hasArrows = false;
+				$hasArrows = false;
         // Now check each of the double arrows (if any).
         $nextArrow = $arrayStart;
         while (($nextArrow = $phpcsFile->findNext(T_DOUBLE_ARROW, ($nextArrow + 1), $arrayEnd)) !== false) {
-                        $hasArrows = true;
+						$hasArrows = true;
             if ($tokens[($nextArrow - 1)]['code'] !== T_WHITESPACE) {
                 $content = $tokens[($nextArrow - 1)]['content'];
                 $error   = 'Expected 1 space between "%s" and double arrow; 0 found';
@@ -287,7 +324,7 @@ class ArrayDeclarationSniff implements Sniff
     /**
      * Processes a multi-line array definition.
      *
-     * @param File $phpcsFile  The current file being checked.
+     * @param PHP_CodeSniffer_File $phpcsFile  The current file being checked.
      * @param int                  $stackPtr   The position of the current token
      *                                         in the stack passed in $tokens.
      * @param int                  $arrayStart The token that starts the array definition.
@@ -295,43 +332,45 @@ class ArrayDeclarationSniff implements Sniff
      *
      * @return void
      */
-    public function processMultiLineArray(File $phpcsFile, $stackPtr, $arrayStart, $arrayEnd)
+    public function processMultiLineArray(PHP_CodeSniffer_File $phpcsFile, $stackPtr, $arrayStart, $arrayEnd)
     {
-            $this->tabIndent = (bool) $this->tabIndent;
-
-            if (isset($phpcsFile->config->tabWidth) === false || $phpcsFile->config->tabWidth === 0) {
+				$this->tabIndent = (bool) $this->tabIndent;
+				if ($this->indent === null) {
+            $cliValues = $phpcsFile->phpcs->cli->getCommandLineValues();
+            if (isset($cliValues['tabWidth']) === false || $cliValues['tabWidth'] === 0) {
                 // We have no idea how wide tabs are, so assume 4 spaces for fixing.
                 // It shouldn't really matter because indent checks elsewhere in the
                 // standard should fix things up.
                 $this->indent = 4;
             } else {
-                $this->indent = $phpcsFile->config->tabWidth;
+                $this->indent = $cliValues['tabWidth'];
             }
-
+        }
+				
         $tokens       = $phpcsFile->getTokens();
         $keywordStart = $tokens[$stackPtr]['column'];
-
-
-                $level = $tokens[$stackPtr]['level'];
-                // Calculate nested level
-                $arrayStart = $stackPtr;
-                if($tokens[$stackPtr]['code'] === T_OPEN_PARENTHESIS){
-                    $arrayStart = $tokens[$stackPtr]['parenthesis_owner'];
-                }
-                for($i = ($arrayStart - 1); $i >= 0; $i--){
-                    switch($tokens[$i]['code']){
-                        case T_ARRAY:
-                            if($tokens[$i]['parenthesis_closer'] > $stackPtr){
-                                $level++;
-                            }
-                            break;
-                        case T_OPEN_SHORT_ARRAY:
-                            if($tokens[$i]['bracket_closer'] > $stackPtr){
-                                $level++;
-                            }
-                            break;
-                    }
-                }
+				
+				
+				$level = $tokens[$stackPtr]['level'];
+				// Calculate nested level
+				$arrayStart = $stackPtr;
+				if($tokens[$stackPtr]['code'] === T_OPEN_PARENTHESIS){
+					$arrayStart = $tokens[$stackPtr]['parenthesis_owner'];
+				}
+				for($i = ($arrayStart - 1); $i >= 0; $i--){
+					switch($tokens[$i]['code']){
+						case T_ARRAY:
+							if($tokens[$i]['parenthesis_closer'] > $stackPtr){
+								$level++;
+							}
+							break;
+						case T_OPEN_SHORT_ARRAY:
+							if($tokens[$i]['bracket_closer'] > $stackPtr){
+								$level++;
+							}
+							break;
+					}
+				}					
 
         // Check the closing bracket is on a new line.
         $lastContent = $phpcsFile->findPrevious(T_WHITESPACE, ($arrayEnd - 1), $arrayStart, true);
@@ -342,7 +381,7 @@ class ArrayDeclarationSniff implements Sniff
                 $phpcsFile->fixer->addNewlineBefore($arrayEnd);
             }
         } else if (+$tokens[$arrayEnd]['column'] - 1 !== ($level * $this->indent)) {
-                    if($this->tabIndent){
+					if($this->tabIndent){
             // Check the closing bracket is lined up on the current level.
             $expected = $level;
             $found    = (int)floor(($tokens[$arrayEnd]['column'] - 1) / $this->indent);
@@ -354,14 +393,14 @@ class ArrayDeclarationSniff implements Sniff
 
             $fix = $phpcsFile->addFixableError($error, $arrayEnd, 'CloseBraceNotAligned', $data);
             if ($fix === true) {
-                if ($found === 0) {
+                if ($found === 0) {	
                     $phpcsFile->fixer->addContentBefore($arrayEnd, str_repeat("\t", $expected));
                 } else {
                     $phpcsFile->fixer->replaceToken(($arrayEnd - 1), str_repeat("\t", $expected));
                 }
             }
-                    } else {
-                        // Check the closing bracket is lined up on the current level.
+					} else {
+						// Check the closing bracket is lined up on the current level.
             $expected = $level * $this->indent;
             $found    = ($tokens[$arrayEnd]['column'] - 1);
             $error    = 'Closing parenthesis not aligned correctly; expected %s space(s) but found %s';
@@ -372,14 +411,14 @@ class ArrayDeclarationSniff implements Sniff
 
             $fix = $phpcsFile->addFixableError($error, $arrayEnd, 'CloseBraceNotAligned', $data);
             if ($fix === true) {
-                if ($found === 0) {
+                if ($found === 0) {	
                     $phpcsFile->fixer->addContentBefore($arrayEnd, str_repeat(" ", $expected));
                 } else {
                     $phpcsFile->fixer->replaceToken(($arrayEnd - 1), str_repeat(" ", $expected));
                 }
             }
-                    }
-        }//end if
+					}
+        }//end if 
 
         $nextToken  = $stackPtr;
         $keyUsed    = false;
@@ -400,10 +439,10 @@ class ArrayDeclarationSniff implements Sniff
                 && (isset($tokens[$nextToken]['parenthesis_owner']) === false
                 || $tokens[$nextToken]['parenthesis_owner'] !== $stackPtr)
             ) {
-                                if (isset($tokens[$nextToken]['parenthesis_closer']) === false) {
-                                    // Syntax error
-                                    return;
-                                }
+								if (isset($tokens[$nextToken]['parenthesis_closer']) === false) {
+									// Syntax error
+									return;
+								}
                 $nextToken = $tokens[$nextToken]['parenthesis_closer'];
                 continue;
             }
@@ -519,7 +558,7 @@ class ArrayDeclarationSniff implements Sniff
                     }
 
                     $valueContent = $phpcsFile->findNext(
-                        Tokens::$emptyTokens,
+                        PHP_CodeSniffer_Tokens::$emptyTokens,
                         ($lastToken + 1),
                         $nextToken,
                         true
@@ -562,7 +601,7 @@ class ArrayDeclarationSniff implements Sniff
 
                 // Find the value of this index.
                 $nextContent = $phpcsFile->findNext(
-                    Tokens::$emptyTokens,
+                    PHP_CodeSniffer_Tokens::$emptyTokens,
                     ($nextToken + 1),
                     $arrayEnd,
                     true
@@ -581,7 +620,7 @@ class ArrayDeclarationSniff implements Sniff
             $singleValue = true;
         } else if (count($indices) === 1 && $tokens[$lastToken]['code'] === T_COMMA) {
             // There may be another array value without a comma.
-            $exclude     = Tokens::$emptyTokens;
+            $exclude     = PHP_CodeSniffer_Tokens::$emptyTokens;
             $exclude[]   = T_COMMA;
             $nextContent = $phpcsFile->findNext($exclude, ($indices[0]['value'] + 1), $arrayEnd, true);
             if ($nextContent === false) {
@@ -635,7 +674,7 @@ class ArrayDeclarationSniff implements Sniff
             $lastIndex = $indices[($count - 1)]['value'];
 
             $trailingContent = $phpcsFile->findPrevious(
-                Tokens::$emptyTokens,
+                PHP_CodeSniffer_Tokens::$emptyTokens,
                 ($arrayEnd - 1),
                 $lastIndex,
                 true
@@ -672,7 +711,7 @@ class ArrayDeclarationSniff implements Sniff
                         $phpcsFile->fixer->addNewlineBefore($value['value']);
                     }
                 } else if ($tokens[($value['value'] - 1)]['code'] === T_WHITESPACE) {
-                                    if($this->tabIndent){
+									if($this->tabIndent){
                     $expected = ($level + 1);
 
                     $first = $phpcsFile->findFirstOnLine(T_WHITESPACE, $value['value'], true);
@@ -693,8 +732,8 @@ class ArrayDeclarationSniff implements Sniff
                             }
                         }
                     }
-                                    } else {
-
+									} else {
+										
                     $expected = ($level + 1) * $this->indent;
 
                     $first = $phpcsFile->findFirstOnLine(T_WHITESPACE, $value['value'], true);
@@ -715,9 +754,9 @@ class ArrayDeclarationSniff implements Sniff
                             }
                         }
                     }
-                                    }
-                }//end if
-
+									}
+                }//end if 
+                
 
                 $lastValueLine = $tokens[$value['value']]['line'];
             }//end foreach
@@ -757,7 +796,7 @@ class ArrayDeclarationSniff implements Sniff
         $valueStart    = ($arrowStart + 3);
         $indexLine     = $tokens[$stackPtr]['line'];
         $lastIndexLine = null;
-                //error_log(var_dump_r($indices));
+				//error_log(var_dump_r($indices));
         foreach ($indices as $index) {
             if (isset($index['index']) === false) {
                 // Array value only.
@@ -799,9 +838,9 @@ class ArrayDeclarationSniff implements Sniff
                 continue;
             }
 
-
+            
             if ($tokens[$index['index']]['column'] - 1 !== ($level + 1) * $this->indent) {
-                            if($this->tabIndent){
+							if($this->tabIndent){
                 $expected = ($level + 1);
                 $found    = (int)floor(($tokens[$index['index']]['column'] - 1) / $this->indent);
                 $error    = 'Array key not aligned correctly; expected %s tab(s) but found %s';
@@ -818,7 +857,7 @@ class ArrayDeclarationSniff implements Sniff
                         $phpcsFile->fixer->replaceToken(($index['index'] - 1), str_repeat("\t", $expected));
                     }
                 }
-                            } else {
+							} else {
                 $expected = ($level + 1) * $this->indent;
                 $found    = ($tokens[$index['index']]['column'] - 1);
                 $error    = 'Array key not aligned correctly; expected %s space(s) but found %s';
@@ -835,39 +874,39 @@ class ArrayDeclarationSniff implements Sniff
                         $phpcsFile->fixer->replaceToken(($index['index'] - 1), str_repeat(" ", $expected));
                     }
                 }
-                            }
+							}
                 continue;
             }
-
-                        if($tokens[$index['arrow'] - 1]['code'] !== T_WHITESPACE || $tokens[$index['arrow'] - 1]['content'] !== " "){
-
+            
+						if($tokens[$index['arrow'] - 1]['code'] !== T_WHITESPACE || $tokens[$index['arrow'] - 1]['content'] !== " "){
+							
                 $error    = 'Array double arrow must be preceded by 1 space';
 
                 $fix = $phpcsFile->addFixableError($error, $index['arrow'], 'ArrowNotAligned');
                 if ($fix === true) {
-                                    if($tokens[$index['arrow'] - 1]['code'] !== T_WHITESPACE){
-                                        $phpcsFile->fixer->addContent($index['index'], " ");
-                                    } else {
-                                        $phpcsFile->fixer->replaceToken(($index['index'] + 1), " ");
-                                    }
+									if($tokens[$index['arrow'] - 1]['code'] !== T_WHITESPACE){
+										$phpcsFile->fixer->addContent($index['index'], " ");
+									} else {
+										$phpcsFile->fixer->replaceToken(($index['index'] + 1), " ");
+									}
                 }
                 continue;
-                        }
-
-                        if($tokens[$index['arrow'] + 1]['code'] !== T_WHITESPACE || $tokens[$index['arrow'] + 1]['content'] !== " "){
-
+						}
+            
+						if($tokens[$index['arrow'] + 1]['code'] !== T_WHITESPACE || $tokens[$index['arrow'] + 1]['content'] !== " "){
+							
                 $error    = 'Array double arrow must be followed by 1 space';
 
                 $fix = $phpcsFile->addFixableError($error, $index['value'], 'ValueNotAligned');
                 if ($fix === true) {
-                                    if($tokens[$index['arrow'] + 1]['code'] !== T_WHITESPACE){
-                                        $phpcsFile->fixer->addContent($index['arrow'], " ");
-                                    } else {
-                                        $phpcsFile->fixer->replaceToken(($index['arrow'] + 1), " ");
-                                    }
+									if($tokens[$index['arrow'] + 1]['code'] !== T_WHITESPACE){
+										$phpcsFile->fixer->addContent($index['arrow'], " ");
+									} else {
+										$phpcsFile->fixer->replaceToken(($index['arrow'] + 1), " ");
+									}
                 }
                 continue;
-                        }
+						}
             /*
             if ($tokens[$index['arrow']]['column'] !== $arrowStart) {
                 $expected = ($arrowStart - (strlen($index['index_content']) + $tokens[$index['index']]['column']));
@@ -941,7 +980,7 @@ class ArrayDeclarationSniff implements Sniff
                 }
 
                 // Skip to the end of multi-line strings.
-                if (isset(Tokens::$stringTokens[$tokens[$i]['code']]) === true) {
+                if (isset(PHP_CodeSniffer_Tokens::$stringTokens[$tokens[$i]['code']]) === true) {
                     $i = $phpcsFile->findNext($tokens[$i]['code'], ($i + 1), null, true);
                     $i--;
                     $valueLine = $tokens[$i]['line'];
