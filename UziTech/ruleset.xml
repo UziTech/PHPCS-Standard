@@ -3,7 +3,6 @@
 	<description>UziTech coding standard.</description>
 
 	<arg name="tab-width" value="2"/>
-	<arg name="report" value="summary"/>
 	<arg value="s" />
 
 	<rule ref="PSR2">
@@ -44,7 +43,7 @@
 	<rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie" />
 	<rule ref="Generic.PHP.NoSilencedErrors"/>
 	<rule ref="Squiz.ControlStructures.ElseIfDeclaration" />
-	
+
 	<rule ref="UziTech.Debug.LogTokens">
 		<properties>
 			<property name="debug" value="false"/>
