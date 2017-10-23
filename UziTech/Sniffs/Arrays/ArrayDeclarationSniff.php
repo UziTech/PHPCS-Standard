@@ -578,11 +578,15 @@ class ArrayDeclarationSniff implements Sniff
         $singleValue = false;
 
         if (empty($indices) === true) {
-            $singleValue = true;
+						// check for comments
+						$exclude = [T_WHITESPACE];
+            $nextContent = $phpcsFile->findNext($exclude, ($arrayStart + 1), $arrayEnd, true);
+            if ($nextContent === false) {
+                $singleValue = true;
+            }
         } else if (count($indices) === 1 && $tokens[$lastToken]['code'] === T_COMMA) {
-            // There may be another array value without a comma.
-            $exclude     = Tokens::$emptyTokens;
-            $exclude[]   = T_COMMA;
+            // There may be another array value without a comma or a comment.
+            $exclude = [T_WHITESPACE, T_COMMA];
             $nextContent = $phpcsFile->findNext($exclude, ($indices[0]['value'] + 1), $arrayEnd, true);
             if ($nextContent === false) {
                 $singleValue = true;
