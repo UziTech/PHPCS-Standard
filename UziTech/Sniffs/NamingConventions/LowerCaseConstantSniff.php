@@ -84,7 +84,7 @@ class UziTech_Sniffs_NamingConventions_LowerCaseConstantSniff implements PHP_Cod
 				}
 				
 				$prevToken = $phpcsFile->findPrevious(T_WHITESPACE, ($stackPtr - 1), null, true, null, true);
-        if ($prevToken === false || in_array($tokens[$prevToken]['code'], [T_FUNCTION, T_CLASS, T_DOUBLE_COLON, T_EXTENDS, T_IMPLEMENTS, T_OBJECT_OPERATOR, T_NAMESPACE, T_NS_SEPARATOR])) {
+        if ($prevToken === false || in_array($tokens[$prevToken]['code'], [T_FUNCTION, T_CLASS, T_DOUBLE_COLON, T_EXTENDS, T_IMPLEMENTS, T_OBJECT_OPERATOR, T_NAMESPACE, T_NS_SEPARATOR, T_NEW])) {
 					// Is function/class name or namespace
 					return;
 				}
