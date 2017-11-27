@@ -586,9 +586,11 @@ class ArrayDeclarationSniff implements Sniff
             }
         } else if (count($indices) === 1 && $tokens[$lastToken]['code'] === T_COMMA) {
             // There may be another array value without a comma or a comment.
-            $exclude = [T_WHITESPACE, T_COMMA];
+            $exclude = [T_WHITESPACE];
+						$prevContent = $phpcsFile->findNext($exclude, ($arrayStart + 1), (isset($indices[0]['index']) ? $indices[0]['index'] : $indices[0]['value']), true);
+						$exclude = [T_WHITESPACE, T_COMMA];
             $nextContent = $phpcsFile->findNext($exclude, ($indices[0]['value'] + 1), $arrayEnd, true);
-            if ($nextContent === false) {
+            if ($prevContent === false && $nextContent === false) {
                 $singleValue = true;
             }
         }
