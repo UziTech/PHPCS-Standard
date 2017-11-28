@@ -62,13 +62,7 @@ class ObjectOperatorIndentSniff implements Sniff
     {
 
         // XXX: added by Tony
-        $this->tabIndent = (bool) $this->tabIndent;
-        if (isset($phpcsFile->config->tabWidth) === false || $phpcsFile->config->tabWidth === 0) {
-            // We have no idea how wide tabs are, so assume 4 spaces for fixing.
-            // It shouldn't really matter because indent checks elsewhere in the
-            // standard should fix things up.
-            $this->indent = 4;
-        } else {
+        if (isset($phpcsFile->config->tabWidth) === true && $phpcsFile->config->tabWidth > 0) {
             $this->indent = $phpcsFile->config->tabWidth;
         }
         // XXX: added by Tony

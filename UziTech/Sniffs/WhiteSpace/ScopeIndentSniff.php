@@ -57,13 +57,6 @@ class ScopeIndentSniff implements Sniff
     public $tabIndent = false;
 
     /**
-     * The --tab-width CLI value that is being used.
-     *
-     * @var integer
-     */
-    private $tabWidth = null;
-
-    /**
      * List of tokens not needing to be checked for indentation.
      *
      * Useful to allow Sniffs based on this to easily ignore/skip some
@@ -132,17 +125,9 @@ class ScopeIndentSniff implements Sniff
             $this->debug = (bool) $debug;
         }
 
-        if ($this->tabWidth === null) {
-            if (isset($phpcsFile->config->tabWidth) === false || $phpcsFile->config->tabWidth === 0) {
-                // We have no idea how wide tabs are, so assume 4 spaces for fixing.
-                // It shouldn't really matter because indent checks elsewhere in the
-                // standard should fix things up.
-                $this->tabWidth = 4;
-            } else {
-                $this->tabWidth = $phpcsFile->config->tabWidth;
-            }
+        if (isset($phpcsFile->config->tabWidth) === true && $phpcsFile->config->tabWidth > 0) {
+            $this->indent = $phpcsFile->config->tabWidth;
         }
-        $this->indent = $this->tabWidth;
 
         $currentIndent = 0;
         $lastOpenTag   = $stackPtr;
@@ -521,8 +506,8 @@ class ScopeIndentSniff implements Sniff
                     $padding = ($tokenIndent + $adjustments[$first]);
                     if ($padding > 0) {
                         if ($this->tabIndent === true) {
-                            $numTabs   = floor($padding / $this->tabWidth);
-                            $numSpaces = ($padding - ($numTabs * $this->tabWidth));
+                            $numTabs   = floor($padding / $this->indent);
+                            $numSpaces = ($padding - ($numTabs * $this->indent));
                             $padding   = str_repeat("\t", $numTabs).str_repeat(' ', $numSpaces);
                         } else {
                             $padding = str_repeat(' ', $padding);
@@ -831,8 +816,8 @@ class ScopeIndentSniff implements Sniff
                 if ($this->tabIndent === true) {
                     $error .= '%s tabs, found %s';
                     $data   = array(
-                               floor($checkIndent / $this->tabWidth),
-                               floor($tokenIndent / $this->tabWidth),
+                               floor($checkIndent / $this->indent),
+                               floor($tokenIndent / $this->indent),
                               );
                 } else {
                     $error .= '%s spaces, found %s';
@@ -852,9 +837,9 @@ class ScopeIndentSniff implements Sniff
                 if ($fix === true || $this->debug === true) {
                     $padding = '';
                     if ($this->tabIndent === true) {
-                        $numTabs = floor($checkIndent / $this->tabWidth);
+                        $numTabs = floor($checkIndent / $this->indent);
                         if ($numTabs > 0) {
-                            $numSpaces = ($checkIndent - ($numTabs * $this->tabWidth));
+                            $numSpaces = ($checkIndent - ($numTabs * $this->indent));
                             $padding   = str_repeat("\t", $numTabs).str_repeat(' ', $numSpaces);
                         }
                     } else if ($checkIndent > 0) {
