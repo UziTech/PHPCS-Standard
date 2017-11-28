@@ -13,6 +13,7 @@
 		<exclude name="PSR2.Classes.ClassDeclaration" />
 		<exclude name="PSR2.ControlStructures.ElseIfDeclaration.NotAllowed" />
 		<exclude name="PSR2.ControlStructures.SwitchDeclaration" />
+		<exclude name="PSR2.Methods.FunctionCallSignature" />
 	</rule>
 
 	<rule ref="Generic.WhiteSpace.DisallowSpaceIndent"/>
@@ -35,6 +36,11 @@
 		</properties>
 	</rule>
 	<rule ref="UziTech.WhiteSpace.ObjectOperatorIndent">
+		<properties>
+			<property name="tabIndent" value="true"/>
+		</properties>
+	</rule>
+	<rule ref="UziTech.Functions.FunctionCallSignature">
 		<properties>
 			<property name="tabIndent" value="true"/>
 		</properties>
