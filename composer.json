@@ -1,0 +1,8 @@
+{
+  "name": "UziTech/PHPCS-Standard",
+  "version": "v0.0.0",
+  "source": {
+    "url": "https://github.com/UziTech/PHPCS-Standard",
+    "type": "git"
+  }
+}
