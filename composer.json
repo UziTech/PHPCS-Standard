@@ -3,6 +3,7 @@
   "version": "v0.0.0",
   "source": {
     "url": "https://github.com/UziTech/PHPCS-Standard",
-    "type": "git"
+    "type": "git",
+    "reference": "master"
   }
 }
