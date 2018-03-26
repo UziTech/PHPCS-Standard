@@ -31,6 +31,7 @@
 		<properties>
 			<property name="tabIndent" value="true"/>
 		</properties>
+		<exclude name="UziTech.Arrays.ArrayDeclaration.ValueNoNewline" />
 	</rule>
 	<rule ref="UziTech.ControlStructures.SwitchDeclaration">
 		<properties>
