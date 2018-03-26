@@ -1,6 +1,7 @@
 {
   "name": "uzitech/phpcs-standard",
   "version": "v1.0.0",
+  "license": "MIT",
   "source": {
     "url": "https://github.com/UziTech/PHPCS-Standard",
     "type": "git",
