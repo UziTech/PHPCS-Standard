@@ -57,17 +57,17 @@ class LowerCaseConstantSniff implements Sniff {
 		// Check non-whitespace tokens around this token to see if it is interpreted as a constant
 		$nextToken = $phpcsFile->findNext(T_WHITESPACE, ($stackPtr + 1), null, true, null, true);
 		if ($nextToken !== false && in_array($tokens[$nextToken]['code'], [T_OPEN_PARENTHESIS, T_DOUBLE_COLON, T_VARIABLE, T_NS_SEPARATOR])) {
-					// Is function call or start of static variable or variable type
+			// Is function call or start of static variable or variable type
 			return;
 		}
 
 		$prevToken = $phpcsFile->findPrevious(T_WHITESPACE, ($stackPtr - 1), null, true, null, true);
-		if ($prevToken === false || in_array($tokens[$prevToken]['code'], [T_FUNCTION, T_CLASS, T_DOUBLE_COLON, T_EXTENDS, T_IMPLEMENTS, T_OBJECT_OPERATOR, T_NAMESPACE, T_NS_SEPARATOR, T_NEW])) {
-					// Is function/class name or namespace
+		if ($prevToken === false || in_array($tokens[$prevToken]['code'], [T_OPEN_PARENTHESIS, T_COMMA, T_FUNCTION, T_CLASS, T_DOUBLE_COLON, T_EXTENDS, T_IMPLEMENTS, T_OBJECT_OPERATOR, T_NAMESPACE, T_NS_SEPARATOR, T_NEW])) {
+			// Is function/class name or namespace
 			return;
 		}
 
-				// if it gets this far it is either lowercase constant or forgot the $ before variable
+		// if it gets this far it is either lowercase constant or forgot the $ before variable
 
 		$error = 'Did you forget a \'$\'; expected \'$%s\' found \'%s\'';
 		$data  = [
@@ -75,7 +75,7 @@ class LowerCaseConstantSniff implements Sniff {
 			$constName,
 		];
 		$phpcsFile->addError($error, $stackPtr, 'ConstantNotUpperCase', $data);
-								// Not fixable because we are not 100% sure that it is not a constant and it will change logic
+		// Not fixable because we are not 100% sure that it is not a constant and it will change logic
 	}//end process()
 
 
