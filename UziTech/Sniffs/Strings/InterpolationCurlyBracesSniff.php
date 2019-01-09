@@ -64,15 +64,21 @@ class InterpolationCurlyBracesSniff implements Sniff {
 
 		$skipTo = ($lastStringToken + 1);
 
-		// The use of variables in double quoted strings is not allowed.
+		// Interpolated variables should be wrapped in curly braces.
 		if ($tokens[$stackPtr]['code'] === T_DOUBLE_QUOTED_STRING) {
 			$stringTokens = token_get_all('<?php '.$workingString);
 			$error = false;
 			foreach ($stringTokens as $key => $token) {
 				if (is_array($token) === true && $token[0] === T_VARIABLE) {
-					if (isset($stringTokens[$key - 1]) === false || is_array($stringTokens[$key - 1]) === false || $stringTokens[$key - 1][0] !== T_CURLY_OPEN) {
-						$error = "Interpolated variables should be wrapped in curly braces";
-						break;
+					for ($i = $key - 1; $i >= 0; $i--) {
+						$tokeni = isset($stringTokens[$i]) ? $stringTokens[$i] : null;
+						$tokeni = is_array($tokeni) ? $tokeni : [null, $tokeni, 1];
+						if ($tokeni[0] === T_OPEN_TAG || ($tokeni[0] === null && $tokeni[1] === "}")) {
+							$error = "Interpolated variables should be wrapped in curly braces";
+							break 2;
+						} else if ($tokeni[0] === T_VARIABLE || $tokeni[0] === T_CURLY_OPEN) {
+							break;
+						}
 					}
 				}
 			}
@@ -83,14 +89,14 @@ class InterpolationCurlyBracesSniff implements Sniff {
 					$newString = "";
 					while (strlen($workingString) > 0) {
 						$matches = null;
-						preg_match('/^(?:\\\\\\\\|\\\\\$|\{\$|\$[\W\d]|[^\$])+/', $workingString, $matches);
-						if (isset($matches[0]) === true && strlen($matches[0]) > 0) {
+						preg_match('/^(?:\\\\\\\\|\\\\\$|\{\$.+\}|\$[\W\d]|[^\$])+/', $workingString, $matches);
+						if (isset($matches[0]) && strlen($matches[0]) > 0) {
 							$newString .= $matches[0];
 							$workingString = substr($workingString, strlen($matches[0]));
 							continue;
 						}
 						preg_match('/^\$[^\W\d]\w*(?:\[[^\]]*\]|\([^)]*\)|->[^\W\d]\w*)*/', $workingString, $matches);
-						if (isset($matches[0]) === true && strlen($matches[0]) > 0) {
+						if (isset($matches[0]) && strlen($matches[0]) > 0) {
 							$newString .= "{{$matches[0]}}";
 							$workingString = substr($workingString, strlen($matches[0]));
 							continue;
