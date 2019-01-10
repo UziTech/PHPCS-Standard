@@ -47,50 +47,29 @@ class InterpolationCurlyBracesSniff implements Sniff {
 		} while ($nextToken < $phpcsFile->numTokens && $tokens[$nextToken]['code'] === $tokens[$stackPtr]['code']);
 		$skipTo = $nextToken;
 
-		$phpString = "<?php ";
-		if ($isHeredoc) {
-			$phpString .= '"' . $workingString . '"';
-		} else {
-			$phpString .= $workingString;
-		}
-
-		$stringTokens = token_get_all($phpString);
-		$error = false;
 		$errorVars = [];
-		foreach ($stringTokens as $key => $token) {
-			if (is_array($token) && $token[0] === T_VARIABLE) {
-				for ($i = $key - 1; $i >= 0; $i--) {
-					$tokeni = isset($stringTokens[$i]) ? $stringTokens[$i] : null;
-					$tokeni = is_array($tokeni) ? $tokeni : [null, $tokeni, 1];
-					if ($tokeni[0] === T_OPEN_TAG || ($tokeni[0] === null && $tokeni[1] === "}")) {
-						// $error = $workingString;
-						$error = "Interpolated variables should be wrapped in curly braces. '{$token[1]}'";
-						break 2;
-					} else if ($tokeni[0] === T_VARIABLE || $tokeni[0] === T_CURLY_OPEN) {
-						break;
-					}
+		$newString = "";
+		while (strlen($workingString) > 0) {
+			$matches = null;
+			$isNotVar = preg_match('/^(?:\\\\.|\\{\\$[^{]+?\\}|\\$[\\W\\d]|[^\\$])+/', $workingString, $matches);
+			$isVar = !$isNotVar && preg_match('/^\\$[^\\W\\d]\\w*(?:\\[[^\\]]*\\]|\\([^)]*\\)|->[^\\W\\d]\\w*)*/', $workingString, $matches);
+			if (isset($matches[0]) && strlen($matches[0]) > 0) {
+				if ($isVar) {
+					$newString .= "{{$matches[0]}}";
+					$errorVars[] = $matches[0];
+				} else {
+					$newString .= $matches[0];
 				}
+				$workingString = substr($workingString, strlen($matches[0]));
+			} else {
+				// something went wrong
+				return $skipTo;
 			}
 		}
 
-		if ($error) {
-			$fix = $phpcsFile->addFixableError($error, $stackPtr, 'NoCurlyVarInterpolation');
-
+		if (count($errorVars) > 0) {
+			$fix = $phpcsFile->addFixableError("The following interpolated variables should be wrapped in curly braces: '" . implode("', '", $errorVars) . "'", $stackPtr, 'NoCurlyVarInterpolation');
 			if ($fix) {
-				$newString = "";
-				while (strlen($workingString) > 0) {
-					$matches = null;
-					$isNotVar = preg_match('/^(?:\\\\.|\\{\\$.+?\\}|\\$[\\W\\d]|[^\\$])+/', $workingString, $matches);
-					$isVar = !$isNotVar && preg_match('/^\\$[^\\W\\d]\\w*(?:\\[[^\\]]*\\]|\\([^)]*\\)|->[^\\W\\d]\\w*)*/', $workingString, $matches);
-					if (isset($matches[0]) && strlen($matches[0]) > 0) {
-						$newString .= $isVar ? "{{$matches[0]}}" : $matches[0];
-						$workingString = substr($workingString, strlen($matches[0]));
-					} else {
-						// something went wrong
-						return $skipTo;
-					}
-				}
-
 				$phpcsFile->fixer->beginChangeset();
 				$phpcsFile->fixer->replaceToken($stackPtr, $newString);
 
