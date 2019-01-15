@@ -16,6 +16,7 @@
 		<exclude name="PSR2.Methods.FunctionCallSignature" />
 	</rule>
 
+	<rule ref="Generic.Files.LineEndings"/>
 	<rule ref="Generic.WhiteSpace.DisallowSpaceIndent"/>
 	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 	<rule ref="Generic.Commenting.Todo"/>
