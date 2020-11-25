@@ -59,4 +59,6 @@
 			<property name="debug" value="false"/>
 		</properties>
 	</rule>
+	
+	<rule ref="VariableAnalysis"/>
  </ruleset>
