@@ -96,7 +96,7 @@ class VariableAnalysisSniff implements Sniff {
 	 *
 	 *  @var string|null
 	 */
-	public $validUndefinedVariableNames = "user analytics";
+	public $validUndefinedVariableNames = null;
 
 	/**
 	 * Allows unused arguments in a function definition if they are
