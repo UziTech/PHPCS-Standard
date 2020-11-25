@@ -7,7 +7,9 @@
     "type": "git",
     "reference": "master"
   },
-  "require": {
-    "sirbrillig/phpcs-variable-analysis": "2.*"
+  "autoload": {
+      "psr-4": {
+          "UziTech\\": "UziTech/"
+      }
   }
 }

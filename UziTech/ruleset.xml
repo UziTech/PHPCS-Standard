@@ -59,6 +59,10 @@
 			<property name="debug" value="false"/>
 		</properties>
 	</rule>
-	
-	<rule ref="VariableAnalysis"/>
+
+	<rule ref="UziTech.CodeAnalysis.VariableAnalysis">
+		<properties>
+			<property name="validUndefinedVariableNames" value="user analytics"/>
+		</properties>
+	</rule>
  </ruleset>
