@@ -3,8 +3,8 @@
 namespace UziTech\Lib;
 
 use PHP_CodeSniffer\Files\File;
-use VariableAnalysis\Lib\ScopeInfo;
-use VariableAnalysis\Lib\VariableInfo;
+use UziTech\Lib\ScopeInfo;
+use UziTech\Lib\VariableInfo;
 use PHP_CodeSniffer\Util\Tokens;
 
 class Helpers {
